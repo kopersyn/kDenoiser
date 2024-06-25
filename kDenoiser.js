@@ -1,21 +1,22 @@
 // ---------- kDenoiser Script ----------
 // tryna be best denoiser for PixInsight
+// part of • kScript Bundle •
 // made with love by Igor Koprowicz (koperson)
 // check my other scripts at https://www.kscripts.pl/
 // --------------------------------------
 
-#feature-id kScripts > kDenoiser
+#feature-id kScripts Bundle > kDenoiser
 #feature-info Image denoiser script
 #define TITLE "kDenoiser"
-#define VERSION "0.2"
+#define VERSION "0.2.1"
 
 #include <pjsr/NumericControl.jsh>
 #include <pjsr/Sizer.jsh>
 
-var scriptVersion = "0.2";
+var scriptVersion = "0.2.1";
 
 var DenoiseParameters = {
-  dnAmount: 1,
+  dnAmount: 0,
   targetView: undefined,
   colorDen: 0
 };
@@ -78,12 +79,14 @@ function kdDialog() {
 
   // textbox
   this.title = new TextBox(this);
-  this.title.text = "<b>kDenoiser</b>" + " v"+ scriptVersion + "<br><br>" +
+  this.title.text = "<b>kDenoiser</b>" + " v"+ scriptVersion + "<br>" +
                     "Script that <b>gently</b> denoise your image <b>without damaging details</b>!<br><br>" +
-                    "<b><i>What's new? </b><b>Version 0.2</b><br>- Added <b>Color Denoise</b> option.<br>- Fixed errors.</i>";
+                    "Slider applies only for TGVDenoise, and doesn't change anything to Color Denoise.<br><br>" +
+                    "<b><i>What's new? </b><b>Version 0.2.1</b><br>- Added <b>Color Denoise</b> option.<br>- Fixed errors.</i>";
   this.title.readOnly = true;
-  this.title.minHeight = 100;
-  this.title.maxHeight = 150;
+  this.title.minHeight = 160;
+  this.title.maxHeight = 200;
+  this.title.windowTitle = "kDenoiser";
 
   // viewlist
   this.viewList = new ViewList(this);
@@ -94,15 +97,16 @@ function kdDialog() {
 
   // control
   this.amount = new NumericControl(this);
-  this.amount.label.text = "Denoise strength";
+  this.amount.label.text = "Strength (0.0 = off)";
   this.amount.setPrecision(1);
-  this.amount.setRange(1, 10);
+  this.amount.setRange(0, 10);
   this.amount.slider.setRange(0, 100);
   this.amount.onValueUpdated = function( value ) {
     DenoiseParameters.dnAmount = value;
   }
 
   // checkbox (for color denoise)
+  this.cdError = new Error(this);
   this.checkBox = new CheckBox(this);
   this.checkBox.text = "Color denoise?";
   this.checkBox.checked = false;
@@ -156,11 +160,14 @@ function main() {
     if(DenoiseParameters.targetView == undefined){
       Console.criticalln("!!! You need to choose a view !!!")
     } else {
-      Console.hide();
-      applyDenoise(DenoiseParameters.targetView, DenoiseParameters.dnAmount);
-      if (DenoiseParameters.colorDen == 1){
-        colorDenoise(DenoiseParameters.targetView);
+      if (DenoiseParameters.dnAmount == 0){
+        if (DenoiseParameters.colorDen == 1){
+          Console.hide();
+          colorDenoise(DenoiseParameters.targetView);
       }
+    } else {
+      applyDenoise(DenoiseParameters.targetView, DenoiseParameters.dnAmount);
+    }
       Console.noteln("Successfully denoised!");
     }
   } else {
