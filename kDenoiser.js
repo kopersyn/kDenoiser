@@ -166,6 +166,10 @@ function main() {
           colorDenoise(DenoiseParameters.targetView);
       }
     } else {
+      if (DenoiseParameters.colorDen == 1){
+        Console.hide();
+        colorDenoise(DenoiseParameters.targetView);
+      }
       applyDenoise(DenoiseParameters.targetView, DenoiseParameters.dnAmount);
     }
       Console.noteln("Successfully denoised!");
